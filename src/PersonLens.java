@@ -62,6 +62,7 @@ public final class PersonLens {
         public Person set(Person person, java.util.List<Person> newChildren) { return lens.set(person, newChildren); }
 
         public ChildNode at(int index) { return new ChildNode(index); }
+        public ChildNode get(int index) { return at(index); }
 
         public Lens<Person, Person> lensAt(int index) {
             return lens.andThen(ListLens.index(index));

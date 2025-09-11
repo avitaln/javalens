@@ -16,7 +16,7 @@ public class Main {
         Person updated3 = PersonLens.address.set(updated2, someAddress);
 
         // Update a child name using nicer node syntax
-        Person updatedChild0 = PersonLens.childAt(0).name.set(updated3, "KidA-Renamed");
+        Person updatedChild0 = PersonLens.children.get(0).name.set(updated3, "KidA-Renamed");
 
         // Update tags via lenses
         Person updatedPersonTags = PersonLens.tags.mod(updatedChild0, tags -> {
@@ -30,6 +30,15 @@ public class Main {
         Person updatedPetName = PersonLens.pets.at("rex").name.set(updatedAddressTags, "Rexy");
         Person updatedPetType = PersonLens.pets.at("mimi").type.set(updatedPetName, "kitty");
 
+        // Batch multiple updates using Mutations builder
+        Person batch = Mutations.<Person>forType()
+                .set(PersonLens.name, "Batchy")
+                .set(PersonLens.address.city, "LA")
+                .mod(PersonLens.tags, ts -> java.util.List.of("gold"))
+                .set(PersonLens.children.get(0).name, "BatchKid")
+                .set(PersonLens.pets.at("rex").type, "wolf")
+                .apply(updatedPetType);
+
         System.out.println("original: " + person);
         System.out.println("after name.set: " + updated1);
         System.out.println("after address.city.set: " + updated2);
@@ -37,5 +46,6 @@ public class Main {
         System.out.println("after child[0].name.set: " + updatedChild0);
         System.out.println("after person.tags.mod + address.tags.mod: " + updatedAddressTags);
         System.out.println("after pets updates: " + updatedPetType);
+        System.out.println("after batch mutations: " + batch);
     }
 }
