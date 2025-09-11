@@ -31,7 +31,7 @@ public class Main {
         Person updatedPetType = PersonLens.pets.at("mimi").type.set(updatedPetName, "kitty");
 
         // Batch multiple updates using Mutations builder
-        Person batch = Mutations.<Person>forType()
+        Person batch = PersonLens.batch()
                 .set(PersonLens.name, "Batchy")
                 .set(PersonLens.address.city, "LA")
                 .mod(PersonLens.tags, ts -> java.util.List.of("gold"))

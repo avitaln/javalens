@@ -1,5 +1,7 @@
 public final class PersonLens {
 
+    public static Mutations<Person> batch() { return Mutations.forType(); }
+
     public static final Lens<Person, String> name = Lens.of(
             Person::name,
             (person, newName) -> new Person(newName, person.address(), person.children(), person.tags(), person.pets())

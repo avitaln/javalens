@@ -43,6 +43,7 @@ public final class LensCodeGenerator {
         sb.append("import java.util.List;\n");
         sb.append("import java.util.Map;\n\n");
         sb.append("public final class ").append(className).append(" {\n\n");
+        sb.append("    public static Mutations<").append(rootName).append("> batch() { return Mutations.forType(); }\n\n");
 
         // Root-level simple lenses and nodes
         List<RecordComponent> components = Arrays.asList(root.getRecordComponents());
