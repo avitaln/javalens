@@ -1,6 +1,13 @@
+package model;
+
+import lib.Lens;
+import lib.ListLens;
+import lib.MapLens;
+import lib.Mutations;
+
 public final class PersonLens {
 
-    public static Mutations<Person> batch() { return Mutations.forType(); }
+    public static Mutations.BoundMutations<Person> on(Person person) { return Mutations.forValue(person); }
 
     public static final Lens<Person, String> name = Lens.of(
             Person::name,
@@ -19,14 +26,6 @@ public final class PersonLens {
                 Person::address,
                 (person, newAddress) -> new Person(person.name(), newAddress, person.children(), person.tags(), person.pets())
         );
-
-        public Address get(Person person) {
-            return lens.get(person);
-        }
-
-        public Person set(Person person, Address newAddress) {
-            return lens.set(person, newAddress);
-        }
 
         public final Lens<Person, String> city = lens.andThen(
                 Lens.of(
@@ -52,16 +51,11 @@ public final class PersonLens {
 
     public static final ChildrenNode children = new ChildrenNode();
 
-    public static ChildNode childAt(int index) { return children.at(index); }
-
     public static final class ChildrenNode {
         private final Lens<Person, java.util.List<Person>> lens = Lens.of(
                 Person::children,
                 (person, newChildren) -> new Person(person.name(), person.address(), newChildren, person.tags(), person.pets())
         );
-
-        public java.util.List<Person> get(Person person) { return lens.get(person); }
-        public Person set(Person person, java.util.List<Person> newChildren) { return lens.set(person, newChildren); }
 
         public ChildNode at(int index) { return new ChildNode(index); }
         public ChildNode get(int index) { return at(index); }
@@ -79,9 +73,6 @@ public final class PersonLens {
                 (person, newPets) -> new Person(person.name(), person.address(), person.children(), person.tags(), newPets)
         );
 
-        public java.util.Map<String, Pet> get(Person person) { return lens.get(person); }
-        public Person set(Person person, java.util.Map<String, Pet> newPets) { return lens.set(person, newPets); }
-
         public PetNode at(String key) { return new PetNode(key); }
 
         public Lens<Person, Pet> lensAt(String key) { return lens.andThen(MapLens.key(key)); }
@@ -97,9 +88,6 @@ public final class PersonLens {
             this.name = this.lens.andThen(Lens.of(Pet::name, (pet, newName) -> new Pet(newName, pet.type())));
             this.type = this.lens.andThen(Lens.of(Pet::type, (pet, newType) -> new Pet(pet.name(), newType)));
         }
-
-        public Pet get(Person person) { return lens.get(person); }
-        public Person set(Person person, Pet newPet) { return lens.set(person, newPet); }
     }
 
     public static final class ChildNode {
@@ -110,15 +98,6 @@ public final class PersonLens {
             this.lens = children.lensAt(index);
             this.name = this.lens.andThen(PersonLens.name);
         }
-
-        public Person get(Person person) {
-            return lens.get(person);
-        }
-
-        public Person set(Person person, Person newChild) {
-            return lens.set(person, newChild);
-        }
-
     }
 }
 

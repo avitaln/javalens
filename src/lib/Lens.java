@@ -1,3 +1,5 @@
+package lib;
+
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -20,7 +22,7 @@ public final class Lens<A, B> {
         return getter.apply(a);
     }
 
-    public A set(final A a, final B b) {
+    A set(final A a, final B b) {
         return setter.apply(a, b);
     }
 
@@ -39,3 +41,5 @@ public final class Lens<A, B> {
         return that.compose(this);
     }
 }
+
+

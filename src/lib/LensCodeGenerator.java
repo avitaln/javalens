@@ -1,3 +1,5 @@
+package lib;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.ParameterizedType;
@@ -6,7 +8,6 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -16,7 +17,7 @@ public final class LensCodeGenerator {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.err.println("Usage: LensCodeGenerator <fullyQualifiedRecordClass> <outputDir>");
+            System.err.println("Usage: lib.LensCodeGenerator <fullyQualifiedRecordClass> <outputDir>");
             System.exit(1);
         }
         String fqcn = args[0];
