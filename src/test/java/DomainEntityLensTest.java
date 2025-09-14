@@ -182,9 +182,29 @@ public class DomainEntityLensTest {
     }
     
     @Test
+    void testNestedValueLensWithFriendlySyntax() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nested.nestedValue, "updatedNested")
+            .apply();
+        
+        assertEquals("updatedNested", updated.nested().nestedValue());
+        assertEquals("nestedValue", testEntity.nested().nestedValue()); // Original unchanged
+    }
+    
+    @Test
     void testMoreNestedValueLens() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
             .set(DomainEntityLens.nested.andThen(NestedLens.moreNested).andThen(MoreNestedLens.moreNestedValue), "updatedMoreNested")
+            .apply();
+        
+        assertEquals("updatedMoreNested", updated.nested().moreNested().moreNestedValue());
+        assertEquals("moreNestedValue", testEntity.nested().moreNested().moreNestedValue()); // Original unchanged
+    }
+    
+    @Test
+    void testMoreNestedValueLensWithFriendlySyntax() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nested.moreNested.moreNestedValue, "updatedMoreNested")
             .apply();
         
         assertEquals("updatedMoreNested", updated.nested().moreNested().moreNestedValue());

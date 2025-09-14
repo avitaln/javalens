@@ -4,6 +4,7 @@ import lib.Lens;
 import lib.ListLens;
 import lib.MapLens;
 import lib.Mutations;
+import lib.DomainEntity$NestedLens;
 
 import java.util.List;
 import java.util.Map;
@@ -57,8 +58,8 @@ public final class DomainEntityLens {
         return stringMap.andThen(MapLens.key(key));
     }
 
-    // Nested lens
-    public static final Lens<DomainEntity, Nested> nested = Lens.of(
+    // Nested lens with direct property access
+    public static final DomainEntity$NestedLens nested = new DomainEntity$NestedLens(
         DomainEntity::nested,
         (entity, newValue) -> new DomainEntity(
             entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), newValue, entity.optionalNested()
