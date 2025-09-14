@@ -7,51 +7,66 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- * A wrapper for recursive nested structures using functions instead of properties.
- * This prevents infinite loops during initialization while maintaining friendly syntax:
- * entity.recursiveNested.value() instead of entity.recursiveNested.value
- * entity.recursiveNested.child().value() instead of entity.recursiveNested.child.getValue()
+ * A unified wrapper for recursive nested structures that handles both RecursiveNested 
+ * and Optional<RecursiveNested> cases. This prevents infinite loops during initialization 
+ * while maintaining friendly syntax: entity.recursiveNested().value() and 
+ * entity.recursiveNested().child().child().value()
  */
-public class DomainEntity$RecursiveNestedLens implements Mutations.LensProvider<DomainEntity, RecursiveNested> {
+public class DomainEntity$RecursiveNestedLens implements Mutations.LensProvider<DomainEntity, Optional<RecursiveNested>> {
 
-    private final Lens<DomainEntity, RecursiveNested> lens;
+    private final Lens<DomainEntity, Optional<RecursiveNested>> lens;
 
-    public DomainEntity$RecursiveNestedLens(Function<DomainEntity, RecursiveNested> getter, BiFunction<DomainEntity, RecursiveNested, DomainEntity> setter) {
-        this.lens = Lens.of(getter, setter);
+    // Private constructor - use factory methods instead
+    private DomainEntity$RecursiveNestedLens(Lens<DomainEntity, Optional<RecursiveNested>> lens) {
+        this.lens = lens;
     }
     
-    // Direct access to value property as function
-    public Lens<DomainEntity, String> value() {
-        return this.lens.andThen(Lens.of(
-            RecursiveNested::value,
-            (nested, newValue) -> new RecursiveNested(newValue, nested.child())
+    // Factory method for non-optional RecursiveNested (root level)
+    public static DomainEntity$RecursiveNestedLens fromRequired(Function<DomainEntity, RecursiveNested> getter, BiFunction<DomainEntity, RecursiveNested, DomainEntity> setter) {
+        return new DomainEntity$RecursiveNestedLens(Lens.of(
+            entity -> Optional.of(getter.apply(entity)),
+            (entity, optValue) -> optValue.map(value -> setter.apply(entity, value)).orElse(entity)
         ));
     }
     
-    // Recursive access to child property as function - supports chaining!
-    public DomainEntity$RecursiveNestedChildLens child() {
-        return new DomainEntity$RecursiveNestedChildLens(
-            entity -> lens.get(entity).child(),
-            (entity, newChild) -> lens.set(entity, new RecursiveNested(lens.get(entity).value(), newChild))
+    // Factory method for Optional<RecursiveNested> (child levels)
+    public static DomainEntity$RecursiveNestedLens fromOptional(Function<DomainEntity, Optional<RecursiveNested>> getter, BiFunction<DomainEntity, Optional<RecursiveNested>, DomainEntity> setter) {
+        return new DomainEntity$RecursiveNestedLens(Lens.of(getter, setter));
+    }
+    
+    // Direct access to value property - handles Optional internally
+    public Lens<DomainEntity, String> value() {
+        return this.lens.andThen(Lens.of(
+            opt -> opt.map(RecursiveNested::value).orElse(""),
+            (opt, newValue) -> opt.map(nested -> new RecursiveNested(newValue, nested.child()))
+        ));
+    }
+    
+    // Recursive access to child property - returns another RecursiveNestedLens for chaining
+    public DomainEntity$RecursiveNestedLens child() {
+        return DomainEntity$RecursiveNestedLens.fromOptional(
+            entity -> lens.get(entity).flatMap(RecursiveNested::child),
+            (entity, newChild) -> lens.set(entity, 
+                lens.get(entity).map(nested -> new RecursiveNested(nested.value(), newChild)))
         );
     }
     
     // Delegate lens methods to the wrapped lens
-    public RecursiveNested get(DomainEntity entity) {
+    public Optional<RecursiveNested> get(DomainEntity entity) {
         return lens.get(entity);
     }
     
-    public DomainEntity set(DomainEntity entity, RecursiveNested newValue) {
+    public DomainEntity set(DomainEntity entity, Optional<RecursiveNested> newValue) {
         return lens.set(entity, newValue);
     }
     
-    public <C> Lens<DomainEntity, C> andThen(Lens<RecursiveNested, C> that) {
+    public <C> Lens<DomainEntity, C> andThen(Lens<Optional<RecursiveNested>, C> that) {
         return lens.andThen(that);
     }
     
     // Implement LensProvider interface
     @Override
-    public Lens<DomainEntity, RecursiveNested> lens() {
+    public Lens<DomainEntity, Optional<RecursiveNested>> lens() {
         return lens;
     }
 }

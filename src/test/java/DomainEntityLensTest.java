@@ -79,7 +79,7 @@ public class DomainEntityLensTest {
     @Test
     void testStringListElementLens() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.stringListGet(0), "updated")
+            .set(DomainEntityLens.stringList().get(0), "updated")
             .apply();
         
         assertEquals(List.of("updated", "b", "c"), updated.stringList());
@@ -140,7 +140,7 @@ public class DomainEntityLensTest {
         DomainEntity updated = DomainEntityLens.on(testEntity)
             .set(DomainEntityLens.stringValue(), "chained")
             .set(DomainEntityLens.optionalString(), Optional.of("chained optional"))
-            .set(DomainEntityLens.stringListGet(0), "updated")
+            .set(DomainEntityLens.stringList().get(0), "updated")
             .set(DomainEntityLens.stringMap().key("str1"), "chained value")
             .apply();
         

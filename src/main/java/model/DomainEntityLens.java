@@ -2,6 +2,7 @@ package model;
 
 import lib.Lens;
 import lib.ListLens;
+import lib.ListLensWrapper;
 import lib.MapLens;
 import lib.Mutations;
 import lib.MapLensWrapper;
@@ -36,19 +37,14 @@ public final class DomainEntityLens {
         );
     }
 
-    // String List lens as function
-    public static Lens<DomainEntity, List<String>> stringList() {
-        return Lens.of(
+    // String List lens with direct element access as function
+    public static ListLensWrapper<DomainEntity, String> stringList() {
+        return new ListLensWrapper<>(
             DomainEntity::stringList,
             (entity, newValue) -> new DomainEntity(
                 entity.stringValue(), entity.optionalString(), newValue, entity.stringMap(), entity.nested(), entity.optionalNested(), entity.recursiveNested()
             )
         );
-    }
-    
-    // String List element access
-    public static Lens<DomainEntity, String> stringListGet(int index) {
-        return stringList().andThen(ListLens.index(index));
     }
 
     // String Map lens with direct key access as function
@@ -84,7 +80,7 @@ public final class DomainEntityLens {
 
     // Recursive Nested lens with function-based access as function
     public static DomainEntity$RecursiveNestedLens recursiveNested() {
-        return new DomainEntity$RecursiveNestedLens(
+        return DomainEntity$RecursiveNestedLens.fromRequired(
             DomainEntity::recursiveNested,
             (entity, newValue) -> new DomainEntity(
                 entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), newValue
