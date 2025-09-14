@@ -15,9 +15,7 @@ public final class DomainEntityLens {
         return Mutations.forValue(entity); 
     }
 
-    public static final StringListLens stringList = new StringListLens();
-    public static final StringMapLens stringMap = new StringMapLens();
-
+    // String primitive lens
     public static final Lens<DomainEntity, String> stringValue = Lens.of(
             DomainEntity::stringValue,
             (entity, newValue) -> new DomainEntity(
@@ -25,6 +23,7 @@ public final class DomainEntityLens {
             )
     );
 
+    // Optional String lens
     public static final Lens<DomainEntity, Optional<String>> optionalString = Lens.of(
             DomainEntity::optionalString,
             (entity, newValue) -> new DomainEntity(
@@ -32,30 +31,29 @@ public final class DomainEntityLens {
             )
     );
 
-    public static final class StringListLens {
-        public final Lens<DomainEntity, List<String>> lens = Lens.of(
-            DomainEntity::stringList,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), newValue, entity.stringMap()
-            )
-        );
-        
-        public Lens<DomainEntity, String> get(int index) {
-            return lens.andThen(ListLens.index(index));
-        }
-    }
+    // String List lens
+    public static final Lens<DomainEntity, List<String>> stringList = Lens.of(
+        DomainEntity::stringList,
+        (entity, newValue) -> new DomainEntity(
+            entity.stringValue(), entity.optionalString(), newValue, entity.stringMap()
+        )
+    );
     
-    public static final class StringMapLens {
-        public final Lens<DomainEntity, Map<String, String>> lens = Lens.of(
-            DomainEntity::stringMap,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), newValue
-            )
-        );
-        
-        public Lens<DomainEntity, String> key(String key) {
-            return lens.andThen(MapLens.key(key));
-        }
+    // String List element access
+    public static Lens<DomainEntity, String> stringListGet(int index) {
+        return stringList.andThen(ListLens.index(index));
     }
+
+    // String Map lens
+    public static final Lens<DomainEntity, Map<String, String>> stringMap = Lens.of(
+        DomainEntity::stringMap,
+        (entity, newValue) -> new DomainEntity(
+            entity.stringValue(), entity.optionalString(), entity.stringList(), newValue
+        )
+    );
     
+    // String Map key access
+    public static Lens<DomainEntity, String> stringMapKey(String key) {
+        return stringMap.andThen(MapLens.key(key));
+    }
 }

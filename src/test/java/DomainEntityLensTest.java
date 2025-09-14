@@ -53,7 +53,7 @@ public class DomainEntityLensTest {
     void testStringListLens() {
         List<String> newList = List.of("x", "y", "z");
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.stringList.lens, newList)
+            .set(DomainEntityLens.stringList, newList)
             .apply();
         
         assertEquals(newList, updated.stringList());
@@ -63,7 +63,7 @@ public class DomainEntityLensTest {
     @Test
     void testStringListElementLens() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.stringList.get(0), "updated")
+            .set(DomainEntityLens.stringListGet(0), "updated")
             .apply();
         
         assertEquals(List.of("updated", "b", "c"), updated.stringList());
@@ -75,7 +75,7 @@ public class DomainEntityLensTest {
     @Test
     void testStringMapKeyLens() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.stringMap.key("str1"), "updated value")
+            .set(DomainEntityLens.stringMapKey("str1"), "updated value")
             .apply();
         
         assertEquals(Map.of("str1", "updated value", "str2", "value2"), updated.stringMap());
@@ -96,6 +96,16 @@ public class DomainEntityLensTest {
     
     
     @Test
+    void testModifyStringList() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .mod(DomainEntityLens.stringList, list -> List.of(list.get(0).toUpperCase(), list.get(1).toUpperCase(), list.get(2).toUpperCase()))
+            .apply();
+        
+        assertEquals(List.of("A", "B", "C"), updated.stringList());
+        assertEquals(List.of("a", "b", "c"), testEntity.stringList()); // Original unchanged
+    }
+    
+    @Test
     void testModifyOptionalString() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
             .mod(DomainEntityLens.optionalString, opt -> opt.map(String::toUpperCase))
@@ -113,8 +123,8 @@ public class DomainEntityLensTest {
         DomainEntity updated = DomainEntityLens.on(testEntity)
             .set(DomainEntityLens.stringValue, "chained")
             .set(DomainEntityLens.optionalString, Optional.of("chained optional"))
-            .set(DomainEntityLens.stringList.get(0), "updated")
-            .set(DomainEntityLens.stringMap.key("str1"), "chained value")
+            .set(DomainEntityLens.stringListGet(0), "updated")
+            .set(DomainEntityLens.stringMapKey("str1"), "chained value")
             .apply();
         
         assertEquals("chained", updated.stringValue());
