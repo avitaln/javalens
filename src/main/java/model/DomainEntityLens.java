@@ -15,7 +15,9 @@ public final class DomainEntityLens {
         return Mutations.forValue(entity); 
     }
 
-    // String primitive lens
+    public static final StringListLens stringList = new StringListLens();
+    public static final StringMapLens stringMap = new StringMapLens();
+
     public static final Lens<DomainEntity, String> stringValue = Lens.of(
             DomainEntity::stringValue,
             (entity, newValue) -> new DomainEntity(
@@ -23,7 +25,6 @@ public final class DomainEntityLens {
             )
     );
 
-    // Optional String lens
     public static final Lens<DomainEntity, Optional<String>> optionalString = Lens.of(
             DomainEntity::optionalString,
             (entity, newValue) -> new DomainEntity(
@@ -31,7 +32,6 @@ public final class DomainEntityLens {
             )
     );
 
-    // String List lens
     public static final class StringListLens {
         public final Lens<DomainEntity, List<String>> lens = Lens.of(
             DomainEntity::stringList,
@@ -45,9 +45,6 @@ public final class DomainEntityLens {
         }
     }
     
-    public static final StringListLens stringList = new StringListLens();
-
-    // String Map lens
     public static final class StringMapLens {
         public final Lens<DomainEntity, Map<String, String>> lens = Lens.of(
             DomainEntity::stringMap,
@@ -61,5 +58,4 @@ public final class DomainEntityLens {
         }
     }
     
-    public static final StringMapLens stringMap = new StringMapLens();
 }
