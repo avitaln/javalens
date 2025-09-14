@@ -22,7 +22,7 @@ public final class Lens<A, B> {
         return getter.apply(a);
     }
 
-    A set(final A a, final B b) {
+    public A set(final A a, final B b) {
         return setter.apply(a, b);
     }
 

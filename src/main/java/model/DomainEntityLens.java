@@ -4,7 +4,7 @@ import lib.Lens;
 import lib.ListLens;
 import lib.MapLens;
 import lib.Mutations;
-import lib.DomainEntity$NestedLens;
+import lib.MapLensWrapper;
 
 import java.util.List;
 import java.util.Map;
@@ -45,18 +45,14 @@ public final class DomainEntityLens {
         return stringList.andThen(ListLens.index(index));
     }
 
-    // String Map lens
-    public static final Lens<DomainEntity, Map<String, String>> stringMap = Lens.of(
+    // String Map lens with direct key access
+    public static final MapLensWrapper<DomainEntity, String, String> stringMap = new MapLensWrapper<>(
         DomainEntity::stringMap,
         (entity, newValue) -> new DomainEntity(
             entity.stringValue(), entity.optionalString(), entity.stringList(), newValue, entity.nested(), entity.optionalNested()
         )
     );
     
-    // String Map key access
-    public static Lens<DomainEntity, String> stringMapKey(String key) {
-        return stringMap.andThen(MapLens.key(key));
-    }
 
     // Nested lens with direct property access
     public static final DomainEntity$NestedLens nested = new DomainEntity$NestedLens(

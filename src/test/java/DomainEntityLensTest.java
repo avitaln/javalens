@@ -88,12 +88,13 @@ public class DomainEntityLensTest {
     @Test
     void testStringMapKeyLens() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.stringMapKey("str1"), "updated value")
+            .set(DomainEntityLens.stringMap.key("str1"), "updated value")
             .apply();
         
         assertEquals(Map.of("str1", "updated value", "str2", "value2"), updated.stringMap());
         assertEquals(Map.of("str1", "value1", "str2", "value2"), testEntity.stringMap()); // Original unchanged
     }
+    
     
     // MODIFICATION TESTS
     
@@ -137,7 +138,7 @@ public class DomainEntityLensTest {
             .set(DomainEntityLens.stringValue, "chained")
             .set(DomainEntityLens.optionalString, Optional.of("chained optional"))
             .set(DomainEntityLens.stringListGet(0), "updated")
-            .set(DomainEntityLens.stringMapKey("str1"), "chained value")
+            .set(DomainEntityLens.stringMap.key("str1"), "chained value")
             .apply();
         
         assertEquals("chained", updated.stringValue());

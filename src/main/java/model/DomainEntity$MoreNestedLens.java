@@ -1,7 +1,7 @@
-package lib;
+package model;
 
-import model.DomainEntity;
-import model.MoreNested;
+import lib.Lens;
+import lib.Mutations;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
