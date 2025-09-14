@@ -41,10 +41,16 @@ public final class LensCodeGenerator {
         StringBuilder sb = new StringBuilder();
         String rootName = simpleName(root);
         String className = rootName + "LensGenerated";
+        sb.append("package model;\n\n");
+        sb.append("import lib.Lens;\n");
+        sb.append("import lib.ListLens;\n");
+        sb.append("import lib.MapLens;\n");
+        sb.append("import lib.Mutations;\n");
         sb.append("import java.util.List;\n");
         sb.append("import java.util.Map;\n\n");
         sb.append("public final class ").append(className).append(" {\n\n");
-        sb.append("    public static Mutations<").append(rootName).append("> batch() { return Mutations.forType(); }\n\n");
+        sb.append("    public static Mutations.BoundMutations<").append(rootName).append("> on(")
+          .append(rootName).append(" value) { return Mutations.forValue(value); }\n\n");
 
         // Root-level simple lenses and nodes
         List<RecordComponent> components = Arrays.asList(root.getRecordComponents());
@@ -107,8 +113,8 @@ public final class LensCodeGenerator {
           .append(constructorArgsReplacing(rootComps, field, "newValue", "it")).append(")\n");
         sb.append("        );\n\n");
         sb.append("        public ").append(simpleName(recType)).append(" get(").append(rootName).append(" it) { return lens.get(it); }\n\n");
-        sb.append("        public ").append(rootName).append(" set(").append(rootName).append(" it, ")
-          .append(simpleName(recType)).append(" newValue) { return lens.set(it, newValue); }\n\n");
+        // no public set method to avoid single mutations; use composed lenses via Mutations only
+        sb.append("\n");
 
         // sub-record components as lenses
         for (RecordComponent sub : recType.getRecordComponents()) {
@@ -142,8 +148,8 @@ public final class LensCodeGenerator {
           .append(constructorArgsReplacing(rootComps, field, "newValue", "it")).append(")\n");
         sb.append("        );\n\n");
         sb.append("        public java.util.List").append("<").append(simpleName(elemType)).append("> get(").append(rootName).append(" it) { return lens.get(it); }\n\n");
-        sb.append("        public ").append(rootName).append(" set(").append(rootName).append(" it, java.util.List").append("<")
-          .append(simpleName(elemType)).append("> newValue) { return lens.set(it, newValue); }\n\n");
+        // no public set method on list node
+        sb.append("\n");
         sb.append("        public ElementNode at(int index) { return new ElementNode(index); }\n");
         sb.append("        public ElementNode get(int index) { return at(index); }\n\n");
         sb.append("        public Lens<").append(rootName).append(", ").append(simpleName(elemType)).append("> lensAt(int index) { return lens.andThen(ListLens.index(index)); }\n\n");
@@ -189,8 +195,8 @@ public final class LensCodeGenerator {
         sb.append("        );\n\n");
         sb.append("        public java.util.Map").append("<").append(simpleName(keyType)).append(", ").append(simpleName(valType)).append("> get(")
           .append(rootName).append(" it) { return lens.get(it); }\n\n");
-        sb.append("        public ").append(rootName).append(" set(").append(rootName).append(" it, java.util.Map").append("<")
-          .append(simpleName(keyType)).append(", ").append(simpleName(valType)).append("> newValue) { return lens.set(it, newValue); }\n\n");
+        // no public set method on map node
+        sb.append("\n");
         sb.append("        public ElementNode at(").append(simpleName(keyType)).append(" key) { return new ElementNode(key); }\n");
         sb.append("        public ElementNode get(").append(simpleName(keyType)).append(" key) { return at(key); }\n\n");
         sb.append("        public Lens<").append(rootName).append(", ").append(simpleName(valType)).append("> lensAt(")

@@ -30,15 +30,11 @@ public final class Lens<A, B> {
         return set(a, unaryOperator.apply(get(a)));
     }
 
-    public <C> Lens<C, B> compose(final Lens<C, A> that) {
-        return new Lens<>(
-                c -> get(that.get(c)),
-                (c, b) -> that.mod(c, a -> set(a, b))
-        );
-    }
-
     public <C> Lens<A, C> andThen(final Lens<B, C> that) {
-        return that.compose(this);
+        return new Lens<>(
+                c -> that.get(get(c)),
+                (c, b) -> mod(c, a -> that.set(a, b))
+        );
     }
 }
 

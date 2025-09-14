@@ -19,9 +19,21 @@ public final class Mutations<A> {
         return this;
     }
 
+    public <B> Mutations<A> set(LensProvider<A, B> provider, B newValue) {
+        return set(provider.lens(), newValue);
+    }
+
     public <B> Mutations<A> mod(Lens<A, B> lens, UnaryOperator<B> f) {
         operations.add(a -> lens.mod(a, f));
         return this;
+    }
+
+    public <B> Mutations<A> mod(LensProvider<A, B> provider, UnaryOperator<B> f) {
+        return mod(provider.lens(), f);
+    }
+
+    public interface LensProvider<A, B> {
+        Lens<A, B> lens();
     }
 
     public static final class BoundMutations<A> {
@@ -35,9 +47,17 @@ public final class Mutations<A> {
             return this;
         }
 
+        public <B> BoundMutations<A> set(LensProvider<A, B> provider, B newValue) {
+            return set(provider.lens(), newValue);
+        }
+
         public <B> BoundMutations<A> mod(Lens<A, B> lens, UnaryOperator<B> f) {
             operations.add(a -> lens.mod(a, f));
             return this;
+        }
+
+        public <B> BoundMutations<A> mod(LensProvider<A, B> provider, UnaryOperator<B> f) {
+            return mod(provider.lens(), f);
         }
 
         public A apply() {
