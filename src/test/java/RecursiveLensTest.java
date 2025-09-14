@@ -31,6 +31,8 @@ public class RecursiveLensTest {
             Map.of("str1", "value1", "str2", "value2"),
             nested,
             Optional.empty(),
+            List.of(),
+            Map.of(),
             root
         );
     }
@@ -43,7 +45,7 @@ public class RecursiveLensTest {
         
         DomainEntity testEntity = new DomainEntity(
             "hello", Optional.empty(), List.of(), Map.of(), 
-            this.testEntity.nested(), Optional.empty(), root
+            this.testEntity.nested(), Optional.empty(), List.of(), Map.of(), root
         );
         
         DomainEntity updated = DomainEntityLens.on(testEntity)
@@ -75,7 +77,7 @@ public class RecursiveLensTest {
         
         DomainEntity testEntity = new DomainEntity(
             "hello", Optional.empty(), List.of(), Map.of(), 
-            this.testEntity.nested(), Optional.empty(), root
+            this.testEntity.nested(), Optional.empty(), List.of(), Map.of(), root
         );
         
         DomainEntity updated = DomainEntityLens.on(testEntity)

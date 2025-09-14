@@ -11,6 +11,8 @@ public record DomainEntity(
     Map<String, String> stringMap,
     Nested nested,
     Optional<Nested> optionalNested,
+    List<Nested> nestedList,
+    Map<String, Nested> nestedMap,
     RecursiveNested recursiveNested
 ) {
 }

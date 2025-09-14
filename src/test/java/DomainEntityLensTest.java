@@ -27,6 +27,14 @@ public class DomainEntityLensTest {
         
         model.RecursiveNested recursiveNested = new model.RecursiveNested("recursive-root", Optional.empty());
         
+        Nested nestedItem1 = new Nested("listItem1", new MoreNested("listMoreNested1"));
+        Nested nestedItem2 = new Nested("listItem2", new MoreNested("listMoreNested2"));
+        List<Nested> nestedList = List.of(nestedItem1, nestedItem2);
+        
+        Nested mapItem1 = new Nested("mapItem1", new MoreNested("mapMoreNested1"));
+        Nested mapItem2 = new Nested("mapItem2", new MoreNested("mapMoreNested2"));
+        Map<String, Nested> nestedMap = Map.of("key1", mapItem1, "key2", mapItem2);
+        
         testEntity = new DomainEntity(
             "hello",
             Optional.of("optional"),
@@ -34,6 +42,8 @@ public class DomainEntityLensTest {
             Map.of("str1", "value1", "str2", "value2"),
             nested,
             Optional.of(optionalNestedValue),
+            nestedList,
+            nestedMap,
             recursiveNested
         );
     }
@@ -267,5 +277,115 @@ public class DomainEntityLensTest {
         
         // Original unchanged
         assertEquals("optionalMoreNestedValue", testEntity.optionalNested().get().moreNested().moreNestedValue());
+    }
+    
+    // NESTED LIST TESTS
+    
+    @Test
+    void testNestedListLens() {
+        List<Nested> newNestedList = List.of(
+            new Nested("newItem1", new MoreNested("newMoreNested1")),
+            new Nested("newItem2", new MoreNested("newMoreNested2"))
+        );
+        
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nestedList(), newNestedList)
+            .apply();
+        
+        assertEquals(newNestedList, updated.nestedList());
+        assertEquals("listItem1", testEntity.nestedList().get(0).nestedValue()); // Original unchanged
+    }
+    
+    @Test
+    void testNestedListElementAccess() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nestedList().nested(0).nestedValue(), "updatedListItem")
+            .apply();
+        
+        assertEquals("updatedListItem", updated.nestedList().get(0).nestedValue());
+        assertEquals("listMoreNested1", updated.nestedList().get(0).moreNested().moreNestedValue()); // Unchanged
+        assertEquals("listItem2", updated.nestedList().get(1).nestedValue()); // Other elements unchanged
+        
+        // Original unchanged
+        assertEquals("listItem1", testEntity.nestedList().get(0).nestedValue());
+    }
+    
+    @Test
+    void testNestedListMoreNestedAccess() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nestedList().nested(1).moreNested().moreNestedValue(), "updatedListMoreNested")
+            .apply();
+        
+        assertEquals("listItem2", updated.nestedList().get(1).nestedValue()); // Unchanged
+        assertEquals("updatedListMoreNested", updated.nestedList().get(1).moreNested().moreNestedValue());
+        assertEquals("listItem1", updated.nestedList().get(0).nestedValue()); // Other elements unchanged
+        
+        // Original unchanged
+        assertEquals("listMoreNested2", testEntity.nestedList().get(1).moreNested().moreNestedValue());
+    }
+    
+    // NESTED MAP TESTS
+    
+    @Test
+    void testNestedMapLens() {
+        Map<String, Nested> newNestedMap = Map.of(
+            "newKey1", new Nested("newMapItem1", new MoreNested("newMapMoreNested1")),
+            "newKey2", new Nested("newMapItem2", new MoreNested("newMapMoreNested2"))
+        );
+        
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nestedMap(), newNestedMap)
+            .apply();
+        
+        assertEquals(newNestedMap, updated.nestedMap());
+        assertEquals("mapItem1", testEntity.nestedMap().get("key1").nestedValue()); // Original unchanged
+    }
+    
+    @Test
+    void testNestedMapKeyAccess() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nestedMap().nested("key1").nestedValue(), "updatedMapItem")
+            .apply();
+        
+        assertEquals("updatedMapItem", updated.nestedMap().get("key1").nestedValue());
+        assertEquals("mapMoreNested1", updated.nestedMap().get("key1").moreNested().moreNestedValue()); // Unchanged
+        assertEquals("mapItem2", updated.nestedMap().get("key2").nestedValue()); // Other entries unchanged
+        
+        // Original unchanged
+        assertEquals("mapItem1", testEntity.nestedMap().get("key1").nestedValue());
+    }
+    
+    @Test
+    void testNestedMapMoreNestedAccess() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nestedMap().nested("key2").moreNested().moreNestedValue(), "updatedMapMoreNested")
+            .apply();
+        
+        assertEquals("mapItem2", updated.nestedMap().get("key2").nestedValue()); // Unchanged
+        assertEquals("updatedMapMoreNested", updated.nestedMap().get("key2").moreNested().moreNestedValue());
+        assertEquals("mapItem1", updated.nestedMap().get("key1").nestedValue()); // Other entries unchanged
+        
+        // Original unchanged
+        assertEquals("mapMoreNested2", testEntity.nestedMap().get("key2").moreNested().moreNestedValue());
+    }
+    
+    // CHAINED OPERATIONS WITH NESTED COLLECTIONS
+    
+    @Test
+    void testChainedOperationsWithNestedCollections() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nestedList().nested(0).nestedValue(), "chainedListUpdate")
+            .set(DomainEntityLens.nestedMap().nested("key1").moreNested().moreNestedValue(), "chainedMapUpdate")
+            .set(DomainEntityLens.nested().nestedValue(), "chainedNestedUpdate")
+            .apply();
+        
+        assertEquals("chainedListUpdate", updated.nestedList().get(0).nestedValue());
+        assertEquals("chainedMapUpdate", updated.nestedMap().get("key1").moreNested().moreNestedValue());
+        assertEquals("chainedNestedUpdate", updated.nested().nestedValue());
+        
+        // Original unchanged
+        assertEquals("listItem1", testEntity.nestedList().get(0).nestedValue());
+        assertEquals("mapMoreNested1", testEntity.nestedMap().get("key1").moreNested().moreNestedValue());
+        assertEquals("nestedValue", testEntity.nested().nestedValue());
     }
 }

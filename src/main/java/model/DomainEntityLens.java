@@ -21,7 +21,7 @@ public final class DomainEntityLens {
         return Lens.of(
             DomainEntity::stringValue,
             (entity, newValue) -> new DomainEntity(
-                newValue, entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.recursiveNested()
+                newValue, entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
             )
         );
     }
@@ -30,7 +30,7 @@ public final class DomainEntityLens {
         return Lens.of(
             DomainEntity::optionalString,
             (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), newValue, entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.recursiveNested()
+                entity.stringValue(), newValue, entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
             )
         );
     }
@@ -39,7 +39,7 @@ public final class DomainEntityLens {
         return new ListLensWrapper<>(
             DomainEntity::stringList,
             (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), newValue, entity.stringMap(), entity.nested(), entity.optionalNested(), entity.recursiveNested()
+                entity.stringValue(), entity.optionalString(), newValue, entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
             )
         );
     }
@@ -48,7 +48,7 @@ public final class DomainEntityLens {
         return new MapLensWrapper<>(
             DomainEntity::stringMap,
             (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), newValue, entity.nested(), entity.optionalNested(), entity.recursiveNested()
+                entity.stringValue(), entity.optionalString(), entity.stringList(), newValue, entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
             )
         );
     }
@@ -58,7 +58,7 @@ public final class DomainEntityLens {
         return new DomainEntity$NestedLens(
             DomainEntity::nested,
             (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), newValue, entity.optionalNested(), entity.recursiveNested()
+                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), newValue, entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
             )
         );
     }
@@ -67,7 +67,25 @@ public final class DomainEntityLens {
         return new DomainEntity$OptionalNestedLens(
             DomainEntity::optionalNested,
             (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), newValue, entity.recursiveNested()
+                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), newValue, entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
+            )
+        );
+    }
+
+    public static DomainEntity$NestedListLens nestedList() {
+        return new DomainEntity$NestedListLens(
+            DomainEntity::nestedList,
+            (entity, newValue) -> new DomainEntity(
+                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), newValue, entity.nestedMap(), entity.recursiveNested()
+            )
+        );
+    }
+
+    public static DomainEntity$NestedMapLens nestedMap() {
+        return new DomainEntity$NestedMapLens(
+            DomainEntity::nestedMap,
+            (entity, newValue) -> new DomainEntity(
+                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), newValue, entity.recursiveNested()
             )
         );
     }
@@ -76,7 +94,7 @@ public final class DomainEntityLens {
         return DomainEntity$RecursiveNestedLens.fromRequired(
             DomainEntity::recursiveNested,
             (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), newValue
+                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), newValue
             )
         );
     }
