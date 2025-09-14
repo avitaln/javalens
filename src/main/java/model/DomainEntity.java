@@ -5,32 +5,16 @@ import java.util.Map;
 import java.util.Optional;
 
 public record DomainEntity(
-    // Primitives
-    int intValue,
-    long longValue,
-    double doubleValue,
-    boolean booleanValue,
+    // String primitive
     String stringValue,
     
-    // Optionals of primitives
-    Optional<Integer> optionalInt,
-    Optional<Long> optionalLong,
-    Optional<Double> optionalDouble,
-    Optional<Boolean> optionalBoolean,
+    // Optional String
     Optional<String> optionalString,
     
-    // Arrays/Lists of primitives
-    List<Integer> intList,
-    List<Long> longList,
-    List<Double> doubleList,
-    List<Boolean> booleanList,
+    // List of Strings
     List<String> stringList,
     
-    // Maps from String to primitives
-    Map<String, Integer> intMap,
-    Map<String, Long> longMap,
-    Map<String, Double> doubleMap,
-    Map<String, Boolean> booleanMap,
+    // Map from String to String
     Map<String, String> stringMap
 ) {
 }
