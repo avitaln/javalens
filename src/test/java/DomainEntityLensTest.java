@@ -297,7 +297,7 @@ public class DomainEntityLensTest {
     @Test
     void testNestedListElementAccess() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.nestedList().nested(0).nestedValue(), "updatedListItem")
+            .set(DomainEntityLens.nestedList().get(0).nestedValue(), "updatedListItem")
             .apply();
         
         assertEquals("updatedListItem", updated.nestedList().get(0).nestedValue());
@@ -311,7 +311,7 @@ public class DomainEntityLensTest {
     @Test
     void testNestedListMoreNestedAccess() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.nestedList().nested(1).moreNested().moreNestedValue(), "updatedListMoreNested")
+            .set(DomainEntityLens.nestedList().get(1).moreNested().moreNestedValue(), "updatedListMoreNested")
             .apply();
         
         assertEquals("listItem2", updated.nestedList().get(1).nestedValue()); // Unchanged
@@ -342,7 +342,7 @@ public class DomainEntityLensTest {
     @Test
     void testNestedMapKeyAccess() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.nestedMap().nested("key1").nestedValue(), "updatedMapItem")
+            .set(DomainEntityLens.nestedMap().get("key1").nestedValue(), "updatedMapItem")
             .apply();
         
         assertEquals("updatedMapItem", updated.nestedMap().get("key1").nestedValue());
@@ -356,7 +356,7 @@ public class DomainEntityLensTest {
     @Test
     void testNestedMapMoreNestedAccess() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.nestedMap().nested("key2").moreNested().moreNestedValue(), "updatedMapMoreNested")
+            .set(DomainEntityLens.nestedMap().get("key2").moreNested().moreNestedValue(), "updatedMapMoreNested")
             .apply();
         
         assertEquals("mapItem2", updated.nestedMap().get("key2").nestedValue()); // Unchanged
@@ -372,8 +372,8 @@ public class DomainEntityLensTest {
     @Test
     void testChainedOperationsWithNestedCollections() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
-            .set(DomainEntityLens.nestedList().nested(0).nestedValue(), "chainedListUpdate")
-            .set(DomainEntityLens.nestedMap().nested("key1").moreNested().moreNestedValue(), "chainedMapUpdate")
+            .set(DomainEntityLens.nestedList().get(0).nestedValue(), "chainedListUpdate")
+            .set(DomainEntityLens.nestedMap().get("key1").moreNested().moreNestedValue(), "chainedMapUpdate")
             .set(DomainEntityLens.nested().nestedValue(), "chainedNestedUpdate")
             .apply();
         
@@ -407,7 +407,7 @@ public class DomainEntityLensTest {
     
     @Test
     void testConvenienceSetMethodWithCollections() {
-        DomainEntity updated = DomainEntityLens.set(testEntity, DomainEntityLens.nestedList().nested(0).nestedValue(), "updatedListItem");
+        DomainEntity updated = DomainEntityLens.set(testEntity, DomainEntityLens.nestedList().get(0).nestedValue(), "updatedListItem");
         
         assertEquals("updatedListItem", updated.nestedList().get(0).nestedValue());
         assertEquals("listItem1", testEntity.nestedList().get(0).nestedValue()); // Original unchanged

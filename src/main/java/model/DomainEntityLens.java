@@ -7,6 +7,8 @@ import lib.ListLensWrapper;
 import lib.MapLens;
 import lib.Mutations;
 import lib.MapLensWrapper;
+import lib.ObjectListLensWrapper;
+import lib.ObjectMapLensWrapper;
 
 import java.util.List;
 import java.util.Map;
@@ -226,31 +228,17 @@ public final class DomainEntityLens {
         }
     }
 
-    public static class NestedListLens extends ListLensWrapper<DomainEntity, Nested> {
+    public static class NestedListLens extends ObjectListLensWrapper<DomainEntity, Nested, NestedLens> {
         
         public NestedListLens(Function<DomainEntity, List<Nested>> getter, BiFunction<DomainEntity, List<Nested>, DomainEntity> setter) {
-            super(getter, setter);
-        }
-        
-        public NestedLens nested(int index) {
-            return new NestedLens(
-                entity -> super.get(index).get(entity),
-                (entity, newValue) -> super.get(index).set(entity, newValue)
-            );
+            super(getter, setter, NestedLens::new);
         }
     }
 
-    public static class NestedMapLens extends MapLensWrapper<DomainEntity, String, Nested> {
+    public static class NestedMapLens extends ObjectMapLensWrapper<DomainEntity, String, Nested, NestedLens> {
         
         public NestedMapLens(Function<DomainEntity, Map<String, Nested>> getter, BiFunction<DomainEntity, Map<String, Nested>, DomainEntity> setter) {
-            super(getter, setter);
-        }
-        
-        public NestedLens nested(String key) {
-            return new NestedLens(
-                entity -> super.key(key).get(entity),
-                (entity, newValue) -> super.key(key).set(entity, newValue)
-            );
+            super(getter, setter, NestedLens::new);
         }
     }
 }
