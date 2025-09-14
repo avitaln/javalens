@@ -414,6 +414,29 @@ public class DomainEntityLensTest {
     }
     
     @Test
+    void testOptionalEmptyUpdateThrowsException() {
+        // Create entity with empty optional
+        DomainEntity entityWithEmptyOptional = new DomainEntity(
+            "hello", Optional.empty(), List.of(), Map.of(), 
+            testEntity.nested(), Optional.empty(), List.of(), Map.of(), testEntity.recursiveNested()
+        );
+        
+        // Trying to update a property on empty Optional should throw
+        assertThrows(IllegalStateException.class, () -> {
+            DomainEntityLens.set(entityWithEmptyOptional, 
+                DomainEntityLens.optionalNested().nestedValue(), 
+                "shouldFail");
+        });
+        
+        // Trying to update nested property on empty Optional should throw
+        assertThrows(IllegalStateException.class, () -> {
+            DomainEntityLens.set(entityWithEmptyOptional, 
+                DomainEntityLens.optionalNested().moreNested().moreNestedValue(), 
+                "shouldFail");
+        });
+    }
+    
+    @Test
     void testConvenienceModMethod() {
         DomainEntity updated = DomainEntityLens.mod(testEntity, DomainEntityLens.stringValue(), String::toUpperCase);
         

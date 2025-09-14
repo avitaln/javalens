@@ -9,6 +9,7 @@ import lib.Mutations;
 import lib.MapLensWrapper;
 import lib.ObjectListLensWrapper;
 import lib.ObjectMapLensWrapper;
+import lib.OptionalLensWrapper;
 
 import java.util.List;
 import java.util.Map;
@@ -161,41 +162,27 @@ public final class DomainEntityLens {
         }
     }
 
-    public static class OptionalNestedLens extends AbstractDomainLens<DomainEntity, Optional<Nested>> {
+    public static class OptionalNestedLens extends OptionalLensWrapper<DomainEntity, Nested> {
         
         public OptionalNestedLens(Function<DomainEntity, Optional<Nested>> getter, BiFunction<DomainEntity, Optional<Nested>, DomainEntity> setter) {
             super(getter, setter);
         }
         
         public Lens<DomainEntity, String> nestedValue() {
-            return this.lens.andThen(Lens.of(
-                opt -> opt.map(Nested::nestedValue).orElse(""),
-                (opt, newValue) -> opt.map(nested -> new Nested(newValue, nested.moreNested()))
-            ));
+            return createPropertyLens(Nested::nestedValue, 
+                                    (nested, newValue) -> new Nested(newValue, nested.moreNested()), 
+                                    "");
         }
         
-        public OptionalMoreNestedLens moreNested() {
-            return new OptionalMoreNestedLens(
-                entity -> lens.get(entity).map(Nested::moreNested),
-                (entity, newMoreNested) -> lens.set(entity, 
-                    lens.get(entity).map(nested -> new Nested(nested.nestedValue(), newMoreNested.orElse(nested.moreNested()))))
+        public MoreNestedLens moreNested() {
+            return createNestedLens(
+                Nested::moreNested,
+                (nested, newMoreNested) -> new Nested(nested.nestedValue(), newMoreNested),
+                MoreNestedLens::new
             );
         }
     }
 
-    public static class OptionalMoreNestedLens extends AbstractDomainLens<DomainEntity, Optional<MoreNested>> {
-        
-        public OptionalMoreNestedLens(Function<DomainEntity, Optional<MoreNested>> getter, BiFunction<DomainEntity, Optional<MoreNested>, DomainEntity> setter) {
-            super(getter, setter);
-        }
-        
-        public Lens<DomainEntity, String> moreNestedValue() {
-            return this.lens.andThen(Lens.of(
-                opt -> opt.map(MoreNested::moreNestedValue).orElse(""),
-                (opt, newValue) -> opt.map(moreNested -> new MoreNested(newValue))
-            ));
-        }
-    }
 
     public static class RecursiveNestedLens extends AbstractDomainLens<DomainEntity, Optional<RecursiveNested>> {
 
