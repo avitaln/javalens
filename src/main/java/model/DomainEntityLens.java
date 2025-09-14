@@ -17,7 +17,6 @@ public final class DomainEntityLens {
         return Mutations.forValue(entity); 
     }
 
-    // String primitive lens as function
     public static Lens<DomainEntity, String> stringValue() {
         return Lens.of(
             DomainEntity::stringValue,
@@ -27,7 +26,6 @@ public final class DomainEntityLens {
         );
     }
 
-    // Optional String lens as function
     public static Lens<DomainEntity, Optional<String>> optionalString() {
         return Lens.of(
             DomainEntity::optionalString,
@@ -37,7 +35,6 @@ public final class DomainEntityLens {
         );
     }
 
-    // String List lens with direct element access as function
     public static ListLensWrapper<DomainEntity, String> stringList() {
         return new ListLensWrapper<>(
             DomainEntity::stringList,
@@ -47,7 +44,6 @@ public final class DomainEntityLens {
         );
     }
 
-    // String Map lens with direct key access as function
     public static MapLensWrapper<DomainEntity, String, String> stringMap() {
         return new MapLensWrapper<>(
             DomainEntity::stringMap,
@@ -58,7 +54,6 @@ public final class DomainEntityLens {
     }
     
 
-    // Nested lens with direct property access as function
     public static DomainEntity$NestedLens nested() {
         return new DomainEntity$NestedLens(
             DomainEntity::nested,
@@ -68,7 +63,6 @@ public final class DomainEntityLens {
         );
     }
 
-    // Optional Nested lens as function
     public static Lens<DomainEntity, Optional<Nested>> optionalNested() {
         return Lens.of(
             DomainEntity::optionalNested,
@@ -78,7 +72,6 @@ public final class DomainEntityLens {
         );
     }
 
-    // Recursive Nested lens with function-based access as function
     public static DomainEntity$RecursiveNestedLens recursiveNested() {
         return DomainEntity$RecursiveNestedLens.fromRequired(
             DomainEntity::recursiveNested,

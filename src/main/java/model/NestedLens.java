@@ -9,7 +9,6 @@ public final class NestedLens {
         return Mutations.forValue(entity); 
     }
 
-    // String primitive lens as function
     public static Lens<Nested, String> nestedValue() {
         return Lens.of(
             Nested::nestedValue,
@@ -17,7 +16,6 @@ public final class NestedLens {
         );
     }
 
-    // MoreNested lens as function
     public static Lens<Nested, MoreNested> moreNested() {
         return Lens.of(
             Nested::moreNested,
