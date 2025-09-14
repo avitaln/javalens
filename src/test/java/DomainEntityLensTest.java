@@ -63,8 +63,6 @@ public class DomainEntityLensTest {
         assertEquals("optional", testEntity.optionalString().get()); // Original unchanged
     }
     
-    // LIST LENS TESTS
-    
     @Test
     void testStringListLens() {
         List<String> newList = List.of("x", "y", "z");
@@ -86,8 +84,6 @@ public class DomainEntityLensTest {
         assertEquals(List.of("a", "b", "c"), testEntity.stringList()); // Original unchanged
     }
     
-    // MAP LENS TESTS
-    
     @Test
     void testStringMapKeyLens() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
@@ -98,8 +94,6 @@ public class DomainEntityLensTest {
         assertEquals(Map.of("str1", "value1", "str2", "value2"), testEntity.stringMap()); // Original unchanged
     }
     
-    
-    // MODIFICATION TESTS
     
     @Test
     void testModifyStringValue() {
@@ -173,8 +167,6 @@ public class DomainEntityLensTest {
         assertEquals("optional", testEntity.optionalString().get());
     }
     
-    // NESTED LENS TESTS
-    
     @Test
     void testNestedValueLensWithFriendlySyntax() {
         DomainEntity updated = DomainEntityLens.on(testEntity)
@@ -211,8 +203,6 @@ public class DomainEntityLensTest {
         assertEquals("nestedValue", testEntity.nested().nestedValue());
         assertEquals("moreNestedValue", testEntity.nested().moreNested().moreNestedValue());
     }
-    
-    // OPTIONAL NESTED LENS TESTS
     
     @Test
     void testOptionalNestedLens() {
@@ -267,8 +257,6 @@ public class DomainEntityLensTest {
     
     @Test
     void testOptionalNestedMoreNestedValueAccess() {
-        // Test accessing optionalNested.moreNested.moreNestedValue with clean syntax
-        // This will require creating an OptionalNestedLens wrapper
         DomainEntity updated = DomainEntityLens.on(testEntity)
             .set(DomainEntityLens.optionalNested().moreNested().moreNestedValue(), "updatedOptionalMoreNestedValue")
             .apply();
