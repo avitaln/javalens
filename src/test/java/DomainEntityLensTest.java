@@ -8,9 +8,7 @@ import java.util.Optional;
 import model.DomainEntity;
 import model.DomainEntityLens;
 import model.Nested;
-import model.NestedLens;
 import model.MoreNested;
-import model.MoreNestedLens;
 import lib.Lens;
 
 public class DomainEntityLensTest {
