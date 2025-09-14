@@ -95,21 +95,23 @@ public final class DomainEntityLens {
         );
     }
 
-    public static NestedListLens nestedList() {
-        return new NestedListLens(
+    public static ObjectListLensWrapper<DomainEntity, Nested, NestedLens> nestedList() {
+        return new ObjectListLensWrapper<>(
             DomainEntity::nestedList,
             (entity, newValue) -> new DomainEntity(
                 entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), newValue, entity.nestedMap(), entity.recursiveNested()
-            )
+            ),
+            NestedLens::new
         );
     }
 
-    public static NestedMapLens nestedMap() {
-        return new NestedMapLens(
+    public static ObjectMapLensWrapper<DomainEntity, String, Nested, NestedLens> nestedMap() {
+        return new ObjectMapLensWrapper<>(
             DomainEntity::nestedMap,
             (entity, newValue) -> new DomainEntity(
                 entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), newValue, entity.recursiveNested()
-            )
+            ),
+            NestedLens::new
         );
     }
 
@@ -228,17 +230,4 @@ public final class DomainEntityLens {
         }
     }
 
-    public static class NestedListLens extends ObjectListLensWrapper<DomainEntity, Nested, NestedLens> {
-        
-        public NestedListLens(Function<DomainEntity, List<Nested>> getter, BiFunction<DomainEntity, List<Nested>, DomainEntity> setter) {
-            super(getter, setter, NestedLens::new);
-        }
-    }
-
-    public static class NestedMapLens extends ObjectMapLensWrapper<DomainEntity, String, Nested, NestedLens> {
-        
-        public NestedMapLens(Function<DomainEntity, Map<String, Nested>> getter, BiFunction<DomainEntity, Map<String, Nested>, DomainEntity> setter) {
-            super(getter, setter, NestedLens::new);
-        }
-    }
 }
