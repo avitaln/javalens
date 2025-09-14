@@ -11,6 +11,7 @@ import model.Nested;
 import model.NestedLens;
 import model.MoreNested;
 import model.MoreNestedLens;
+import lib.Lens;
 
 public class DomainEntityLensTest {
     
@@ -20,12 +21,17 @@ public class DomainEntityLensTest {
     void setUp() {
         MoreNested moreNested = new MoreNested("moreNestedValue");
         Nested nested = new Nested("nestedValue", moreNested);
+        
+        MoreNested optionalMoreNested = new MoreNested("optionalMoreNestedValue");
+        Nested optionalNestedValue = new Nested("optionalNestedValue", optionalMoreNested);
+        
         testEntity = new DomainEntity(
             "hello",
             Optional.of("optional"),
             List.of("a", "b", "c"),
             Map.of("str1", "value1", "str2", "value2"),
-            nested
+            nested,
+            Optional.of(optionalNestedValue)
         );
     }
     
@@ -218,5 +224,136 @@ public class DomainEntityLensTest {
         assertEquals("hello", testEntity.stringValue());
         assertEquals("nestedValue", testEntity.nested().nestedValue());
         assertEquals("moreNestedValue", testEntity.nested().moreNested().moreNestedValue());
+    }
+    
+    // OPTIONAL NESTED LENS TESTS
+    
+    @Test
+    void testOptionalNestedLens() {
+        MoreNested newMoreNested = new MoreNested("newOptionalMoreNestedValue");
+        Nested newOptionalNested = new Nested("newOptionalNestedValue", newMoreNested);
+        
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.optionalNested, Optional.of(newOptionalNested))
+            .apply();
+        
+        assertTrue(updated.optionalNested().isPresent());
+        assertEquals("newOptionalNestedValue", updated.optionalNested().get().nestedValue());
+        assertEquals("newOptionalMoreNestedValue", updated.optionalNested().get().moreNested().moreNestedValue());
+        
+        // Original unchanged
+        assertEquals("optionalNestedValue", testEntity.optionalNested().get().nestedValue());
+        assertEquals("optionalMoreNestedValue", testEntity.optionalNested().get().moreNested().moreNestedValue());
+    }
+    
+    @Test
+    void testOptionalNestedSetEmpty() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.optionalNested, Optional.empty())
+            .apply();
+        
+        assertTrue(updated.optionalNested().isEmpty());
+        assertTrue(testEntity.optionalNested().isPresent()); // Original unchanged
+    }
+    
+    @Test
+    void testOptionalNestedDeepAccess() {
+        // Create a test entity with empty optional nested first
+        DomainEntity entityWithEmpty = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.optionalNested, Optional.empty())
+            .apply();
+        
+        // Add a new optional nested entity
+        MoreNested newMoreNested = new MoreNested("deepOptionalValue");
+        Nested newNested = new Nested("deepNestedValue", newMoreNested);
+        
+        DomainEntity updated = DomainEntityLens.on(entityWithEmpty)
+            .set(DomainEntityLens.optionalNested, Optional.of(newNested))
+            .apply();
+        
+        assertTrue(updated.optionalNested().isPresent());
+        assertEquals("deepNestedValue", updated.optionalNested().get().nestedValue());
+        assertEquals("deepOptionalValue", updated.optionalNested().get().moreNested().moreNestedValue());
+        
+        // Original entity with empty should be unchanged
+        assertTrue(entityWithEmpty.optionalNested().isEmpty());
+    }
+    
+    @Test
+    void testOptionalNestedDeepValueAccessWhenPresent() {
+        // Test accessing nested values when optional is present - should work
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.optionalNested.andThen(Lens.of(
+                opt -> opt.map(Nested::nestedValue).orElse(null),
+                (opt, newValue) -> opt.map(nested -> 
+                    new Nested(newValue, nested.moreNested()))
+            )), "updatedOptionalNestedValue")
+            .apply();
+        
+        assertTrue(updated.optionalNested().isPresent());
+        assertEquals("updatedOptionalNestedValue", updated.optionalNested().get().nestedValue());
+        assertEquals("optionalMoreNestedValue", updated.optionalNested().get().moreNested().moreNestedValue());
+        
+        // Original unchanged
+        assertEquals("optionalNestedValue", testEntity.optionalNested().get().nestedValue());
+    }
+    
+    @Test
+    void testOptionalNestedDeepValueAccessWhenEmpty() {
+        // Create entity with empty optional nested
+        DomainEntity entityWithEmpty = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.optionalNested, Optional.empty())
+            .apply();
+        
+        // Test accessing nested values when optional is empty - should handle gracefully
+        DomainEntity updated = DomainEntityLens.on(entityWithEmpty)
+            .set(DomainEntityLens.optionalNested.andThen(Lens.of(
+                opt -> opt.map(Nested::nestedValue).orElse(null),
+                (opt, newValue) -> opt.map(nested -> 
+                    new Nested(newValue, nested.moreNested()))
+            )), "shouldNotUpdate")
+            .apply();
+        
+        // Should remain empty since the lens handles empty optional gracefully
+        assertTrue(updated.optionalNested().isEmpty());
+        assertTrue(entityWithEmpty.optionalNested().isEmpty()); // Original unchanged
+    }
+    
+    @Test
+    void testOptionalNestedMoreNestedValueAccessWhenPresent() {
+        // Test accessing deep nested values when optional is present - should work
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.optionalNested.andThen(Lens.of(
+                opt -> opt.map(nested -> nested.moreNested().moreNestedValue()).orElse(null),
+                (opt, newValue) -> opt.map(nested -> new Nested(nested.nestedValue(), new MoreNested(newValue)))
+            )), "updatedOptionalMoreNestedValue")
+            .apply();
+        
+        assertTrue(updated.optionalNested().isPresent());
+        assertEquals("optionalNestedValue", updated.optionalNested().get().nestedValue()); // Unchanged
+        assertEquals("updatedOptionalMoreNestedValue", updated.optionalNested().get().moreNested().moreNestedValue());
+        
+        // Original unchanged
+        assertEquals("optionalMoreNestedValue", testEntity.optionalNested().get().moreNested().moreNestedValue());
+    }
+    
+    @Test
+    void testOptionalNestedMoreNestedValueAccessWhenEmpty() {
+        // Create entity with empty optional nested
+        DomainEntity entityWithEmpty = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.optionalNested, Optional.empty())
+            .apply();
+        
+        // Test accessing deep nested values when optional is empty - should handle gracefully
+        DomainEntity updated = DomainEntityLens.on(entityWithEmpty)
+            .set(DomainEntityLens.optionalNested.andThen(Lens.of(
+                opt -> opt.map(nested -> nested.moreNested().moreNestedValue()).orElse(null),
+                (opt, newValue) -> opt.map(nested -> new Nested(nested.nestedValue(), new MoreNested(newValue)))
+            )), "shouldNotUpdate")
+            .apply();
+        
+        // Should remain empty since the lens handles empty optional gracefully
+        assertTrue(updated.optionalNested().isEmpty());
+        assertTrue(entityWithEmpty.optionalNested().isEmpty()); // Original unchanged
     }
 }

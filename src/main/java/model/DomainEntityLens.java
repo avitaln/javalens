@@ -19,7 +19,7 @@ public final class DomainEntityLens {
     public static final Lens<DomainEntity, String> stringValue = Lens.of(
             DomainEntity::stringValue,
             (entity, newValue) -> new DomainEntity(
-                newValue, entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested()
+                newValue, entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested()
             )
     );
 
@@ -27,7 +27,7 @@ public final class DomainEntityLens {
     public static final Lens<DomainEntity, Optional<String>> optionalString = Lens.of(
             DomainEntity::optionalString,
             (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), newValue, entity.stringList(), entity.stringMap(), entity.nested()
+                entity.stringValue(), newValue, entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested()
             )
     );
 
@@ -35,7 +35,7 @@ public final class DomainEntityLens {
     public static final Lens<DomainEntity, List<String>> stringList = Lens.of(
         DomainEntity::stringList,
         (entity, newValue) -> new DomainEntity(
-            entity.stringValue(), entity.optionalString(), newValue, entity.stringMap(), entity.nested()
+            entity.stringValue(), entity.optionalString(), newValue, entity.stringMap(), entity.nested(), entity.optionalNested()
         )
     );
     
@@ -48,7 +48,7 @@ public final class DomainEntityLens {
     public static final Lens<DomainEntity, Map<String, String>> stringMap = Lens.of(
         DomainEntity::stringMap,
         (entity, newValue) -> new DomainEntity(
-            entity.stringValue(), entity.optionalString(), entity.stringList(), newValue, entity.nested()
+            entity.stringValue(), entity.optionalString(), entity.stringList(), newValue, entity.nested(), entity.optionalNested()
         )
     );
     
@@ -61,7 +61,15 @@ public final class DomainEntityLens {
     public static final Lens<DomainEntity, Nested> nested = Lens.of(
         DomainEntity::nested,
         (entity, newValue) -> new DomainEntity(
-            entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), newValue
+            entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), newValue, entity.optionalNested()
+        )
+    );
+
+    // Optional Nested lens
+    public static final Lens<DomainEntity, Optional<Nested>> optionalNested = Lens.of(
+        DomainEntity::optionalNested,
+        (entity, newValue) -> new DomainEntity(
+            entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), newValue
         )
     );
 }
