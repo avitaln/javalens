@@ -15,7 +15,7 @@ import model.MoreNested;
  * Test showing the TRULY FRIENDLY API for recursive structures using functions.
  * No more lazy lenses - just clean function calls!
  */
-public class FriendlyRecursiveLensTest {
+public class RecursiveLensTest {
     
     private DomainEntity testEntity;
     

@@ -63,8 +63,8 @@ public final class DomainEntityLens {
         );
     }
 
-    public static Lens<DomainEntity, Optional<Nested>> optionalNested() {
-        return Lens.of(
+    public static DomainEntity$OptionalNestedLens optionalNested() {
+        return new DomainEntity$OptionalNestedLens(
             DomainEntity::optionalNested,
             (entity, newValue) -> new DomainEntity(
                 entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), newValue, entity.recursiveNested()
