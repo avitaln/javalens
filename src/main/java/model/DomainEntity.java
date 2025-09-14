@@ -10,6 +10,7 @@ public record DomainEntity(
     List<String> stringList,
     Map<String, String> stringMap,
     Nested nested,
-    Optional<Nested> optionalNested
+    Optional<Nested> optionalNested,
+    RecursiveNested recursiveNested
 ) {
 }

@@ -13,14 +13,13 @@ public class DomainEntity$MoreNestedLens implements Mutations.LensProvider<Domai
 
     private final Lens<DomainEntity, MoreNested> lens;
     
-    // Direct access to moreNestedValue property
-    public final Lens<DomainEntity, String> moreNestedValue;
-
     public DomainEntity$MoreNestedLens(Function<DomainEntity, MoreNested> getter, BiFunction<DomainEntity, MoreNested, DomainEntity> setter) {
         this.lens = Lens.of(getter, setter);
-        
-        // Create direct property access lens by composing with this lens
-        this.moreNestedValue = this.lens.andThen(Lens.of(
+    }
+    
+    // Direct access to moreNestedValue property as function
+    public Lens<DomainEntity, String> moreNestedValue() {
+        return this.lens.andThen(Lens.of(
             MoreNested::moreNestedValue,
             (moreNested, newValue) -> new MoreNested(newValue)
         ));

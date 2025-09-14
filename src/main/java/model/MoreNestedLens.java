@@ -9,9 +9,11 @@ public final class MoreNestedLens {
         return Mutations.forValue(entity); 
     }
 
-    // String primitive lens
-    public static final Lens<MoreNested, String> moreNestedValue = Lens.of(
+    // String primitive lens as function
+    public static Lens<MoreNested, String> moreNestedValue() {
+        return Lens.of(
             MoreNested::moreNestedValue,
             (entity, newValue) -> new MoreNested(newValue)
-    );
+        );
+    }
 }
