@@ -13,11 +13,29 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public final class DomainEntityLens {
 
     public static Mutations.BoundMutations<DomainEntity> on(DomainEntity entity) { 
         return Mutations.forValue(entity); 
+    }
+
+    // Convenience methods for single operations
+    public static <T> DomainEntity set(DomainEntity entity, Mutations.LensProvider<DomainEntity, T> lensProvider, T newValue) {
+        return on(entity).set(lensProvider, newValue).apply();
+    }
+
+    public static <T> DomainEntity set(DomainEntity entity, Lens<DomainEntity, T> lens, T newValue) {
+        return on(entity).set(lens, newValue).apply();
+    }
+
+    public static <T> DomainEntity mod(DomainEntity entity, Mutations.LensProvider<DomainEntity, T> lensProvider, UnaryOperator<T> modifier) {
+        return on(entity).mod(lensProvider, modifier).apply();
+    }
+
+    public static <T> DomainEntity mod(DomainEntity entity, Lens<DomainEntity, T> lens, UnaryOperator<T> modifier) {
+        return on(entity).mod(lens, modifier).apply();
     }
 
     public static Lens<DomainEntity, String> stringValue() {

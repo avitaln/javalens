@@ -386,4 +386,56 @@ public class DomainEntityLensTest {
         assertEquals("mapMoreNested1", testEntity.nestedMap().get("key1").moreNested().moreNestedValue());
         assertEquals("nestedValue", testEntity.nested().nestedValue());
     }
+    
+    // CONVENIENCE METHOD TESTS
+    
+    @Test
+    void testConvenienceSetMethod() {
+        DomainEntity updated = DomainEntityLens.set(testEntity, DomainEntityLens.stringValue(), "updated");
+        
+        assertEquals("updated", updated.stringValue());
+        assertEquals("hello", testEntity.stringValue()); // Original unchanged
+    }
+    
+    @Test
+    void testConvenienceSetMethodWithNested() {
+        DomainEntity updated = DomainEntityLens.set(testEntity, DomainEntityLens.nested().nestedValue(), "updatedNested");
+        
+        assertEquals("updatedNested", updated.nested().nestedValue());
+        assertEquals("nestedValue", testEntity.nested().nestedValue()); // Original unchanged
+    }
+    
+    @Test
+    void testConvenienceSetMethodWithCollections() {
+        DomainEntity updated = DomainEntityLens.set(testEntity, DomainEntityLens.nestedList().nested(0).nestedValue(), "updatedListItem");
+        
+        assertEquals("updatedListItem", updated.nestedList().get(0).nestedValue());
+        assertEquals("listItem1", testEntity.nestedList().get(0).nestedValue()); // Original unchanged
+    }
+    
+    @Test
+    void testConvenienceModMethod() {
+        DomainEntity updated = DomainEntityLens.mod(testEntity, DomainEntityLens.stringValue(), String::toUpperCase);
+        
+        assertEquals("HELLO", updated.stringValue());
+        assertEquals("hello", testEntity.stringValue()); // Original unchanged
+    }
+    
+    @Test
+    void testConvenienceModMethodWithOptional() {
+        DomainEntity updated = DomainEntityLens.mod(testEntity, DomainEntityLens.optionalString(), opt -> opt.map(String::toUpperCase));
+        
+        assertTrue(updated.optionalString().isPresent());
+        assertEquals("OPTIONAL", updated.optionalString().get());
+        assertEquals("optional", testEntity.optionalString().get()); // Original unchanged
+    }
+    
+    @Test
+    void testConvenienceModMethodWithList() {
+        DomainEntity updated = DomainEntityLens.mod(testEntity, DomainEntityLens.stringList(), 
+            list -> List.of(list.get(0).toUpperCase(), list.get(1).toUpperCase(), list.get(2).toUpperCase()));
+        
+        assertEquals(List.of("A", "B", "C"), updated.stringList());
+        assertEquals(List.of("a", "b", "c"), testEntity.stringList()); // Original unchanged
+    }
 }
