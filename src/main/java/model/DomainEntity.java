@@ -8,6 +8,7 @@ public record DomainEntity(
     String stringValue,
     Optional<String> optionalString,
     List<String> stringList,
-    Map<String, String> stringMap
+    Map<String, String> stringMap,
+    Nested nested
 ) {
 }

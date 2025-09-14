@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.Optional;
 import model.DomainEntity;
 import model.DomainEntityLens;
+import model.Nested;
+import model.NestedLens;
+import model.MoreNested;
+import model.MoreNestedLens;
 
 public class DomainEntityLensTest {
     
@@ -14,11 +18,14 @@ public class DomainEntityLensTest {
     
     @BeforeEach
     void setUp() {
+        MoreNested moreNested = new MoreNested("moreNestedValue");
+        Nested nested = new Nested("nestedValue", moreNested);
         testEntity = new DomainEntity(
             "hello",
             Optional.of("optional"),
             List.of("a", "b", "c"),
-            Map.of("str1", "value1", "str2", "value2")
+            Map.of("str1", "value1", "str2", "value2"),
+            nested
         );
     }
     
@@ -154,5 +161,62 @@ public class DomainEntityLensTest {
         // Original unchanged
         assertEquals("hello", testEntity.stringValue());
         assertEquals("optional", testEntity.optionalString().get());
+    }
+    
+    // NESTED LENS TESTS
+    
+    @Test
+    void testNestedValueLens() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nested.andThen(NestedLens.nestedValue), "updatedNested")
+            .apply();
+        
+        assertEquals("updatedNested", updated.nested().nestedValue());
+        assertEquals("nestedValue", testEntity.nested().nestedValue()); // Original unchanged
+    }
+    
+    @Test
+    void testMoreNestedValueLens() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nested.andThen(NestedLens.moreNested).andThen(MoreNestedLens.moreNestedValue), "updatedMoreNested")
+            .apply();
+        
+        assertEquals("updatedMoreNested", updated.nested().moreNested().moreNestedValue());
+        assertEquals("moreNestedValue", testEntity.nested().moreNested().moreNestedValue()); // Original unchanged
+    }
+    
+    @Test
+    void testReplaceNestedEntity() {
+        MoreNested newMoreNested = new MoreNested("newMoreNestedValue");
+        Nested newNested = new Nested("newNestedValue", newMoreNested);
+        
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.nested, newNested)
+            .apply();
+        
+        assertEquals("newNestedValue", updated.nested().nestedValue());
+        assertEquals("newMoreNestedValue", updated.nested().moreNested().moreNestedValue());
+        
+        // Original unchanged
+        assertEquals("nestedValue", testEntity.nested().nestedValue());
+        assertEquals("moreNestedValue", testEntity.nested().moreNested().moreNestedValue());
+    }
+    
+    @Test
+    void testChainedNestedOperations() {
+        DomainEntity updated = DomainEntityLens.on(testEntity)
+            .set(DomainEntityLens.stringValue, "updated")
+            .set(DomainEntityLens.nested.andThen(NestedLens.nestedValue), "updatedNested")
+            .set(DomainEntityLens.nested.andThen(NestedLens.moreNested).andThen(MoreNestedLens.moreNestedValue), "updatedMoreNested")
+            .apply();
+        
+        assertEquals("updated", updated.stringValue());
+        assertEquals("updatedNested", updated.nested().nestedValue());
+        assertEquals("updatedMoreNested", updated.nested().moreNested().moreNestedValue());
+        
+        // Original unchanged
+        assertEquals("hello", testEntity.stringValue());
+        assertEquals("nestedValue", testEntity.nested().nestedValue());
+        assertEquals("moreNestedValue", testEntity.nested().moreNested().moreNestedValue());
     }
 }
