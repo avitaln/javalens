@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Generic code generator for Withers and Lens classes from ANY Java record.
@@ -175,14 +174,7 @@ public class RecordCodeGenerator {
         String fieldType = getTypeString(component.getGenericType());
         Type type = component.getGenericType();
         
-        if (isRecursiveNestedType(type)) {
-            // Special case for recursive record
-            String recursiveTypeName = getTypeString(type);
-            String recursiveLensClassName = recursiveTypeName + "Lens";
-            writer.writeMethod("public static " + recursiveLensClassName + " " + methodName + "()", () -> {
-                writer.writeLine("return " + recursiveLensClassName + ".fromRequired(" + recordName + "::" + methodName + ", " + withersName + "::with" + capitalize(methodName) + ");");
-            });
-        } else if (isRecordType(type)) {
+        if (isRecordType(type)) {
             // Direct record type
             String lensClassName = getTypeString(type) + "Lens";
             writer.writeMethod("public static " + lensClassName + " " + methodName + "()", () -> {
@@ -236,14 +228,12 @@ public class RecordCodeGenerator {
         Set<String> generatedClasses = new HashSet<>();
         Set<Class<?>> allNestedTypes = discoverNestedRecordTypes(recordClass);
         
-        // Generate inner lens classes for all discovered nested record types (except RecursiveNested)
+        // Generate inner lens classes for all discovered nested record types
         for (Class<?> nestedType : allNestedTypes) {
-            if (!isRecursiveNestedType(nestedType)) {  // Skip RecursiveNested - it's handled specially
-                String lensClassName = nestedType.getSimpleName() + "Lens";
-                if (!generatedClasses.contains(lensClassName)) {
-                    generatedClasses.add(lensClassName);
-                    generateInnerLensClass(writer, recordClass, nestedType);
-                }
+            String lensClassName = nestedType.getSimpleName() + "Lens";
+            if (!generatedClasses.contains(lensClassName)) {
+                generatedClasses.add(lensClassName);
+                generateInnerLensClass(writer, recordClass, nestedType);
             }
         }
         
@@ -257,14 +247,6 @@ public class RecordCodeGenerator {
                 if (!generatedClasses.contains(lensClassName)) {
                     generatedClasses.add(lensClassName);
                     generateOptionalInnerLensClass(writer, recordClass, nestedType);
-                }
-            } else if (isRecursiveNestedType(type)) {
-                // Special case for recursive record
-                Class<?> recursiveType = (Class<?>) type;
-                String lensClassName = recursiveType.getSimpleName() + "Lens";
-                if (!generatedClasses.contains(lensClassName)) {
-                    generatedClasses.add(lensClassName);
-                    generateRecursiveLensClass(writer, recordClass, recursiveType);
                 }
             }
         }
@@ -307,6 +289,18 @@ public class RecordCodeGenerator {
             String nestedLensClass = getTypeString(type) + "Lens";
             writer.writeMethod("public " + nestedLensClass + " " + methodName + "()", () -> {
                 writer.writeLine("return new " + nestedLensClass + "(entity -> lens.get(entity)." + methodName + "(), (entity, new" + capitalize(methodName) + ") -> lens.set(entity, " + nestedWithersName + ".with" + capitalize(methodName) + "(lens.get(entity), new" + capitalize(methodName) + ")));");
+            });
+        } else if (isOptionalType(type) && isRecordType(getOptionalElementType(type))) {
+            // Handle Optional<RecordType> fields (including self-referencing ones)
+            String optionalElementType = getTypeString(getOptionalElementType(type));
+            String nestedLensClass = optionalElementType + "Lens";
+            writer.writeMethod("public " + nestedLensClass + " " + methodName + "()", () -> {
+                writer.writeLine("return new " + nestedLensClass + "(");
+                writer.increaseIndent();
+                writer.writeLine("entity -> lens.get(entity)." + methodName + "().orElse(null),");
+                writer.writeLine("(entity, new" + capitalize(methodName) + ") -> lens.set(entity, " + nestedWithersName + ".with" + capitalize(methodName) + "(lens.get(entity), Optional.ofNullable(new" + capitalize(methodName) + ")))");
+                writer.decreaseIndent();
+                writer.writeLine(");");
             });
         } else {
             writer.writeMethod("public Lens<" + recordName + ", " + fieldType + "> " + methodName + "()", () -> {
@@ -377,75 +371,7 @@ public class RecordCodeGenerator {
         return "null";
     }
     
-    private void generateRecursiveLensClass(JavaCodeWriter writer, Class<?> recordClass, Class<?> recursiveRecordClass) {
-        String recordName = recordClass.getSimpleName();
-        String recursiveTypeName = recursiveRecordClass.getSimpleName();
-        String recursiveLensClassName = recursiveTypeName + "Lens";
-        String recursiveWithersName = recursiveTypeName + "Withers";
-        
-        writer.writeClassDeclaration("public static class " + recursiveLensClassName + " extends AbstractDomainLens<" + recordName + ", Optional<" + recursiveTypeName + ">>", () -> {
-            writer.writeMethod("private " + recursiveLensClassName + "(Lens<" + recordName + ", Optional<" + recursiveTypeName + ">> lens)", () -> {
-                writer.writeLine("super(lens);");
-            });
-            writer.writeBlankLine();
-            
-            writer.writeMethod("public static " + recursiveLensClassName + " fromRequired(Function<" + recordName + ", " + recursiveTypeName + "> getter, BiFunction<" + recordName + ", " + recursiveTypeName + ", " + recordName + "> setter)", () -> {
-                writer.writeLine("return new " + recursiveLensClassName + "(Lens.of(");
-                writer.increaseIndent();
-                writer.writeLine("entity -> Optional.of(getter.apply(entity)),");
-                writer.writeLine("(entity, optValue) -> optValue.map(value -> setter.apply(entity, value)).orElse(entity)");
-                writer.decreaseIndent();
-                writer.writeLine("));");
-            });
-            writer.writeBlankLine();
-            
-            writer.writeMethod("public static " + recursiveLensClassName + " fromOptional(Function<" + recordName + ", Optional<" + recursiveTypeName + ">> getter, BiFunction<" + recordName + ", Optional<" + recursiveTypeName + ">, " + recordName + "> setter)", () -> {
-                writer.writeLine("return new " + recursiveLensClassName + "(Lens.of(getter, setter));");
-            });
-            writer.writeBlankLine();
-            
-            // Generate lens methods for all fields of the recursive record
-            RecordComponent[] recursiveComponents = recursiveRecordClass.getRecordComponents();
-            for (RecordComponent component : recursiveComponents) {
-                generateRecursiveFieldLensMethod(writer, recordName, recursiveTypeName, recursiveLensClassName, recursiveWithersName, component);
-            }
-        });
-        writer.writeBlankLine();
-    }
     
-    private void generateRecursiveFieldLensMethod(JavaCodeWriter writer, String recordName, String recursiveTypeName, 
-                                                String recursiveLensClassName, String recursiveWithersName, RecordComponent component) {
-        String methodName = component.getName();
-        String fieldType = getTypeString(component.getGenericType());
-        Type type = component.getGenericType();
-        
-        if (isOptionalType(type) && getOptionalElementType(type).equals(component.getDeclaringRecord())) {
-            // Self-referencing optional field (like Optional<RecursiveNested> child)
-            writer.writeMethod("public " + recursiveLensClassName + " " + methodName + "()", () -> {
-                writer.writeLine("return " + recursiveLensClassName + ".fromOptional(");
-                writer.increaseIndent();
-                writer.writeLine("entity -> lens.get(entity).flatMap(" + recursiveTypeName + "::" + methodName + "),");
-                writer.writeLine("(entity, new" + capitalize(methodName) + ") -> lens.set(entity,");
-                writer.increaseIndent();
-                writer.writeLine("lens.get(entity).map(nested -> " + recursiveWithersName + ".with" + capitalize(methodName) + "(nested, new" + capitalize(methodName) + ")))");
-                writer.decreaseIndent();
-                writer.decreaseIndent();
-                writer.writeLine(");");
-            });
-        } else {
-            // Regular field (like String value)
-            writer.writeMethod("public Lens<" + recordName + ", " + fieldType + "> " + methodName + "()", () -> {
-                writer.writeLine("return this.lens.andThen(Lens.of(");
-                writer.increaseIndent();
-                String defaultValue = getDefaultValue(type);
-                writer.writeLine("opt -> opt.map(" + recursiveTypeName + "::" + methodName + ").orElse(" + defaultValue + "),");
-                writer.writeLine("(opt, new" + capitalize(methodName) + ") -> opt.map(nested -> " + recursiveWithersName + ".with" + capitalize(methodName) + "(nested, new" + capitalize(methodName) + "))");
-                writer.decreaseIndent();
-                writer.writeLine("));");
-            });
-        }
-        writer.writeBlankLine();
-    }
     
     // Utility methods
     
@@ -493,10 +419,11 @@ public class RecordCodeGenerator {
     }
     
     private void addLensImportsForType(Set<String> imports, Type type) {
+        imports.add("lib.*");
         if (type instanceof ParameterizedType paramType) {
             Class<?> rawType = (Class<?>) paramType.getRawType();
             if (rawType == List.class) {
-                imports.add("lib.ListLensWrapper");
+                imports.add("lib.*");
                 imports.add("lib.ObjectListLensWrapper");
             } else if (rawType == Map.class) {
                 imports.add("lib.MapLensWrapper");
@@ -547,67 +474,6 @@ public class RecordCodeGenerator {
         }
     }
 
-    private Set<Class<?>> getNestedRecordTypes(RecordComponent[] components) {
-        Set<Class<?>> nestedTypes = new HashSet<>();
-        for (RecordComponent component : components) {
-            Type type = component.getGenericType();
-            if (isRecordType(type)) {
-                nestedTypes.add((Class<?>) type);
-            } else if (isOptionalType(type) && isRecordType(getOptionalElementType(type))) {
-                nestedTypes.add((Class<?>) getOptionalElementType(type));
-            } else if (isListType(type) && isRecordType(getListElementType(type))) {
-                nestedTypes.add((Class<?>) getListElementType(type));
-            } else if (isMapType(type) && isRecordType(getMapValueType(type))) {
-                nestedTypes.add((Class<?>) getMapValueType(type));
-            }
-        }
-        return nestedTypes;
-    }
-    
-    private boolean hasRecursiveNested(RecordComponent[] components) {
-        return Arrays.stream(components)
-                .anyMatch(comp -> isRecursiveNestedType(comp.getGenericType()));
-    }
-    
-    private boolean isRecursiveNestedType(Type type) {
-        return type instanceof Class<?> clazz && 
-               isRecursiveRecord(clazz);
-    }
-    
-    private boolean isRecursiveNestedType(Class<?> clazz) {
-        return isRecursiveRecord(clazz);
-    }
-    
-    /**
-     * Detect if a record is recursive (has a field of its own type or Optional of its own type)
-     */
-    private boolean isRecursiveRecord(Class<?> recordClass) {
-        if (!recordClass.isRecord()) {
-            return false;
-        }
-        
-        RecordComponent[] components = recordClass.getRecordComponents();
-        for (RecordComponent component : components) {
-            Type fieldType = component.getGenericType();
-            
-            // Direct self-reference
-            if (fieldType.equals(recordClass)) {
-                return true;
-            }
-            
-            // Optional self-reference
-            if (isOptionalType(fieldType)) {
-                Type optionalElementType = getOptionalElementType(fieldType);
-                if (optionalElementType.equals(recordClass)) {
-                    return true;
-                }
-            }
-            
-            // Could add List<Self> or Map<?, Self> detection here if needed
-        }
-        
-        return false;
-    }
     
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) return str;
