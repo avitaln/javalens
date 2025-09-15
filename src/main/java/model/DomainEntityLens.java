@@ -10,6 +10,7 @@ import lib.MapLensWrapper;
 import lib.ObjectListLensWrapper;
 import lib.ObjectMapLensWrapper;
 import lib.OptionalLensWrapper;
+import lib.ObjectOptionalLensWrapper;
 
 import java.util.List;
 import java.util.Map;
@@ -92,7 +93,8 @@ public final class DomainEntityLens {
             DomainEntity::optionalNested,
             (entity, newValue) -> new DomainEntity(
                 entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), newValue, entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
-            )
+            ),
+            NestedLens::new
         );
     }
 
@@ -129,6 +131,10 @@ public final class DomainEntityLens {
     
     public static class NestedLens extends AbstractDomainLens<DomainEntity, Nested> {
         
+        public NestedLens(Lens<DomainEntity, Nested> lens) {
+            super(lens);
+        }
+
         public NestedLens(Function<DomainEntity, Nested> getter, BiFunction<DomainEntity, Nested, DomainEntity> setter) {
             super(getter, setter);
         }
@@ -162,18 +168,21 @@ public final class DomainEntityLens {
         }
     }
 
-    public static class OptionalNestedLens extends OptionalLensWrapper<DomainEntity, Nested> {
-        
-        public OptionalNestedLens(Function<DomainEntity, Optional<Nested>> getter, BiFunction<DomainEntity, Optional<Nested>, DomainEntity> setter) {
-            super(getter, setter);
+    public static class OptionalNestedLens extends ObjectOptionalLensWrapper<DomainEntity, Nested, NestedLens> {
+
+        public OptionalNestedLens(
+                final Function<DomainEntity, Optional<Nested>> getter,
+                final BiFunction<DomainEntity, Optional<Nested>, DomainEntity> setter,
+                final Function<Lens<DomainEntity, Nested>, NestedLens> lensCreator) {
+            super(getter, setter, lensCreator);
         }
-        
+
         public Lens<DomainEntity, String> nestedValue() {
-            return createPropertyLens(Nested::nestedValue, 
-                                    (nested, newValue) -> new Nested(newValue, nested.moreNested()), 
+            return createPropertyLens(Nested::nestedValue,
+                                    (nested, newValue) -> new Nested(newValue, nested.moreNested()),
                                     "");
         }
-        
+
         public MoreNestedLens moreNested() {
             return createNestedLens(
                 Nested::moreNested,
