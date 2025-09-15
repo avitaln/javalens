@@ -43,88 +43,40 @@ public final class DomainEntityLens {
     }
 
     public static Lens<DomainEntity, String> stringValue() {
-        return Lens.of(
-            DomainEntity::stringValue,
-            (entity, newValue) -> new DomainEntity(
-                newValue, entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
-            )
-        );
+        return Lens.of(DomainEntity::stringValue, DomainEntityWithers::withStringValue);
     }
 
     public static Lens<DomainEntity, Optional<String>> optionalString() {
-        return Lens.of(
-            DomainEntity::optionalString,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), newValue, entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
-            )
-        );
+        return Lens.of(DomainEntity::optionalString, DomainEntityWithers::withOptionalString);
     }
 
     public static ListLensWrapper<DomainEntity, String> stringList() {
-        return new ListLensWrapper<>(
-            DomainEntity::stringList,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), newValue, entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
-            )
-        );
+        return new ListLensWrapper<>(DomainEntity::stringList, DomainEntityWithers::withStringList);
     }
 
     public static MapLensWrapper<DomainEntity, String, String> stringMap() {
-        return new MapLensWrapper<>(
-            DomainEntity::stringMap,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), newValue, entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
-            )
-        );
+        return new MapLensWrapper<>(DomainEntity::stringMap, DomainEntityWithers::withStringMap);
     }
     
 
     public static NestedLens nested() {
-        return new NestedLens(
-            DomainEntity::nested,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), newValue, entity.optionalNested(), entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
-            )
-        );
+        return new NestedLens(DomainEntity::nested, DomainEntityWithers::withNested);
     }
 
     public static OptionalNestedLens optionalNested() {
-        return new OptionalNestedLens(
-            DomainEntity::optionalNested,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), newValue, entity.nestedList(), entity.nestedMap(), entity.recursiveNested()
-            ),
-            NestedLens::new
-        );
+        return new OptionalNestedLens(DomainEntity::optionalNested, DomainEntityWithers::withOptionalNested, NestedLens::new);
     }
 
     public static ObjectListLensWrapper<DomainEntity, Nested, NestedLens> nestedList() {
-        return new ObjectListLensWrapper<>(
-            DomainEntity::nestedList,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), newValue, entity.nestedMap(), entity.recursiveNested()
-            ),
-            NestedLens::new
-        );
+        return new ObjectListLensWrapper<>(DomainEntity::nestedList, DomainEntityWithers::withNestedList, NestedLens::new);
     }
 
     public static ObjectMapLensWrapper<DomainEntity, String, Nested, NestedLens> nestedMap() {
-        return new ObjectMapLensWrapper<>(
-            DomainEntity::nestedMap,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), newValue, entity.recursiveNested()
-            ),
-            NestedLens::new
-        );
+        return new ObjectMapLensWrapper<>(DomainEntity::nestedMap, DomainEntityWithers::withNestedMap, NestedLens::new);
     }
 
     public static RecursiveNestedLens recursiveNested() {
-        return RecursiveNestedLens.fromRequired(
-            DomainEntity::recursiveNested,
-            (entity, newValue) -> new DomainEntity(
-                entity.stringValue(), entity.optionalString(), entity.stringList(), entity.stringMap(), entity.nested(), entity.optionalNested(), entity.nestedList(), entity.nestedMap(), newValue
-            )
-        );
+        return RecursiveNestedLens.fromRequired(DomainEntity::recursiveNested, DomainEntityWithers::withRecursiveNested);
     }
 
     // Inner lens classes
@@ -140,17 +92,11 @@ public final class DomainEntityLens {
         }
         
         public Lens<DomainEntity, String> nestedValue() {
-            return this.lens.andThen(Lens.of(
-                Nested::nestedValue,
-                (nested, newValue) -> new Nested(newValue, nested.moreNested())
-            ));
+            return this.lens.andThen(Lens.of(Nested::nestedValue, NestedWithers::withNestedValue));
         }
         
         public MoreNestedLens moreNested() {
-            return new MoreNestedLens(
-                entity -> lens.get(entity).moreNested(),
-                (entity, newMoreNested) -> lens.set(entity, new Nested(lens.get(entity).nestedValue(), newMoreNested))
-            );
+            return new MoreNestedLens(entity -> lens.get(entity).moreNested(), (entity, newMoreNested) -> lens.set(entity, NestedWithers.withMoreNested(lens.get(entity), newMoreNested)));
         }
     }
 
@@ -161,10 +107,7 @@ public final class DomainEntityLens {
         }
         
         public Lens<DomainEntity, String> moreNestedValue() {
-            return this.lens.andThen(Lens.of(
-                MoreNested::moreNestedValue,
-                (moreNested, newValue) -> new MoreNested(newValue)
-            ));
+            return this.lens.andThen(Lens.of(MoreNested::moreNestedValue, MoreNestedWithers::withMoreNestedValue));
         }
     }
 
@@ -178,17 +121,11 @@ public final class DomainEntityLens {
         }
 
         public Lens<DomainEntity, String> nestedValue() {
-            return createPropertyLens(Nested::nestedValue,
-                                    (nested, newValue) -> new Nested(newValue, nested.moreNested()),
-                                    "");
+            return createPropertyLens(Nested::nestedValue, NestedWithers::withNestedValue, "");
         }
 
         public MoreNestedLens moreNested() {
-            return createNestedLens(
-                Nested::moreNested,
-                (nested, newMoreNested) -> new Nested(nested.nestedValue(), newMoreNested),
-                MoreNestedLens::new
-            );
+            return createNestedLens(Nested::moreNested, NestedWithers::withMoreNested, MoreNestedLens::new);
         }
     }
 
